@@ -5,26 +5,28 @@ class Knapsack:
         self.utilities = utilities
 
 def solve_knapsack(knapsack):
-    n = len(knapsack.volume)
-    dp = [[0 for _ in range(knapsack.max_weight + 1)] for _ in range(n + 1)]
-    for i in range(1, n + 1):
-        for j in range(1, knapsack.max_weight + 1):
-            if knapsack.volume[i - 1] <= j:
-                dp[i][j] = max(dp[i - 1][j], dp[i - 1][j - knapsack.volume[i - 1]] + knapsack.utilities[i - 1])
+    num_items = len(knapsack.volume)
+    dp_table = [[0 for _ in range(knapsack.max_weight + 1)] for _ in range(num_items + 1)]
+    for item_index in range(1, num_items + 1):
+        for current_weight in range(1, knapsack.max_weight + 1):
+            if knapsack.volume[item_index - 1] <= current_weight:
+                dp_table[item_index][current_weight] = max(
+                    dp_table[item_index - 1][current_weight],
+                    dp_table[item_index - 1][current_weight - knapsack.volume[item_index - 1]] + knapsack.utilities[item_index - 1]
+                )
             else:
-                dp[i][j] = dp[i - 1][j]
+                dp_table[item_index][current_weight] = dp_table[item_index - 1][current_weight]
 
     # Backtrack to find the items included in the knapsack
     selected_items = []
-    w = knapsack.max_weight
-    for i in range(n, 0, -1):
-        if dp[i][w] != dp[i - 1][w]:
-            selected_items.append(i - 1)
-            w -= knapsack.volume[i - 1]
+    remaining_weight = knapsack.max_weight
+    for item_index in range(num_items, 0, -1):
+        if dp_table[item_index][remaining_weight] != dp_table[item_index - 1][remaining_weight]:
+            selected_items.append(item_index - 1)
+            remaining_weight -= knapsack.volume[item_index - 1]
 
     selected_items.reverse()
-    return dp[n][knapsack.max_weight], selected_items
-
+    return dp_table[num_items][knapsack.max_weight], selected_items
 
 if __name__ == '__main__':
     knapsack = Knapsack(10, [2, 3, 4, 5], [3, 4, 5, 6])
