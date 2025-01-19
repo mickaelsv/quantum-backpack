@@ -23,59 +23,68 @@ def create_hamiltonian(his, jijs, c, n):
 
     return hc
 
-volume = 8
-volumes = np.array([5, 7, 3])
-utilities = np.array([10, 90, 10])
+def QAOA(volumes, utilities, volume, n, l, reps):
 
-his, jijs, c = hijij(volume, volumes, utilities, 10, 3)
-reps = 40
-hamiltonian = create_hamiltonian(his, jijs, c, 3)
-q = QAOAAnsatz(hamiltonian, reps)
+    
 
-nb_params = q.num_parameters
-params = np.random.uniform(0, 2 * np.pi, nb_params)
+    his, jijs, c = hijij(volume, volumes, utilities, l, n)
+    hamiltonian = create_hamiltonian(his, jijs, c, n)
+    q = QAOAAnsatz(hamiltonian, reps)
 
-def f(params):
-    """
-    On suppose qu’on a deux variables globales.
-    q est le circuit paramétré renvoyé par QAOAAnsatz
-    hamiltonian est l’hamiltonien généré avec la fonction SparsePauliOp.from_list
-    """
-    pub = [q, [hamiltonian], [params]]
-    estimator = StatevectorEstimator()
-    result = estimator.run(pubs=[pub]).result()
-    cost = result[0].data.evs[0]
+    nb_params = q.num_parameters
+    params = np.random.uniform(0, 2 * np.pi, nb_params)
 
-    return cost
+    def f(params):
+        """
+        On suppose qu’on a deux variables globales.
+        q est le circuit paramétré renvoyé par QAOAAnsatz
+        hamiltonian est l’hamiltonien généré avec la fonction SparsePauliOp.from_list
+        """
+        pub = [q, [hamiltonian], [params]]
+        estimator = StatevectorEstimator()
+        result = estimator.run(pubs=[pub]).result()
+        cost = result[0].data.evs[0]
 
-best_params = minimize(f, params, args=(), method="COBYLA").x
+        return cost
 
-q.assign_parameters(best_params)
+    best_params = minimize(f, params, args=(), method="COBYLA").x
 
-q.measure_all()
+    q.assign_parameters(best_params)
 
-sampler = Sampler()
-job = sampler.run([q], best_params, shots=5000)
-result = job.result()
+    q.measure_all()
 
-quasi_dists = result.quasi_dists[0].binary_probabilities()
+    sampler = Sampler()
+    job = sampler.run([q], best_params, shots=5000)
+    result = job.result()
+
+    quasi_dists = result.quasi_dists[0].binary_probabilities()
 
 #get value with max probability
 
-solution = max(quasi_dists, key=quasi_dists.get)
-solution = solution[::-1] # Reverse measure order for qiskit
+    solution = max(quasi_dists, key=quasi_dists.get)
+    solution = solution[::-1] # Reverse measure order for qiskit
 
-volume = sum([volumes[i] for i, x in enumerate(solution) if x == '1'])
-utility = sum([utilities[i] for i, x in enumerate(solution) if x == '1'])
+    volume = sum([volumes[i] for i, x in enumerate(solution) if x == '1'])
+    utility = sum([utilities[i] for i, x in enumerate(solution) if x == '1'])
 
-print("Solution: {}, Utility: {}, Volume: {}".format(solution, utility, volume))
+    print("Solution: {}, Utility: {}, Volume: {}".format(solution, utility, volume))
 
 # Plotting the histogram
-states = list(quasi_dists.keys())
-probabilities = list(quasi_dists.values())
-plt.bar(states, probabilities)
-plt.xlabel('State')
-plt.ylabel('Probability')
-plt.title('Histogram of State Probabilities')
-plt.xticks(rotation=90)
-plt.show()
+    states = list(quasi_dists.keys())
+    probabilities = list(quasi_dists.values())
+    plt.bar(states, probabilities)
+    plt.xlabel('State')
+    plt.ylabel('Probability')
+    plt.title('Histogram of State Probabilities')
+    plt.xticks(rotation=90)
+    plt.show()
+
+if __name__ == '__main__':
+    n = 3
+    l = 10
+    reps = 40
+    volume = 8
+    volumes = np.array([5, 7, 3])
+    utilities = np.array([10, 90, 10])
+
+    QAOA(volumes, utilities, volume, n, l, reps)
