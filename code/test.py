@@ -6,6 +6,7 @@ import numpy as np
 
 
 def test_sack(sack):
+    #test grover
     start=time.time()
     result_state, result_utility = grover.solve_knapsack_optimization(sack)
     end=time.time()
@@ -13,15 +14,15 @@ def test_sack(sack):
     print("\ttime :",end-start,"s")
     print(f"\tSelected State: {result_state}, Total Utility: {result_utility}")
 
+    #test qaoa
     start=time.time()
-    # def QAOA(volumes, utilities, volume, n, l, reps):
     solution,utilities = QAOA.QAOA(np.array(sack.volume),np.array(sack.utilities),sack.max_volume,len(sack.utilities),sum(sack.utilities)+1,10)
     end=time.time()
     print("\nQAOA solution : \n")
     print("\ttime :",end-start,"s")
     print("\tSelected State:", solution, "Total Utility:" ,utilities )
 
-
+    #check with dynamic algorithm
     start=time.time()
     max_value,solution  = knapsack.solve_knapsack(sack)
     end=time.time()
