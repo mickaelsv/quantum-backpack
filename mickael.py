@@ -4,6 +4,7 @@ from qiskit.primitives import Sampler
 from math import floor, pi
 import numpy as np
 
+# Q2
 class Knapsack:
     """
     Class to represent a knapsack problem.
@@ -13,6 +14,7 @@ class Knapsack:
         self.volume = volume
         self.utilities = utilities
 
+# Q3
 def solve_knapsack(knapsack):
     """
     Function to solve the knapsack problem using dynamic programming.
@@ -45,6 +47,7 @@ def solve_knapsack(knapsack):
     selected_items.reverse()
     return dp_table[num_items][knapsack.max_volume], selected_items, sum(knapsack.volume[i] for i in selected_items)
 
+# Q13
 def get_possible_combinations_with_utility_over_k(knapsack, k):
     """
     Function to get all possible combinations of items that have a utility greater than k.
@@ -63,6 +66,7 @@ def get_possible_combinations_with_utility_over_k(knapsack, k):
 
     return possible_combinations, utilities
 
+# Q13
 def mark_solutions_with_oracle(circuit, qubits, L):
     """
     Function to mark the solutions in L with an oracle for Grover's algorithm.
@@ -82,7 +86,8 @@ def mark_solutions_with_oracle(circuit, qubits, L):
             if bit == '0':
                 circuit.x(qubits[i])
 
-def q13(knapsack, k):
+# Q13
+def build_oracle(knapsack, k):
     """
     Function to solve question 13: Constructs a list L of all realizable solutions with weight > k,
     and builds an oracle for Grover's algorithm.
@@ -97,6 +102,77 @@ def q13(knapsack, k):
 
     return qc
 
+def grover_check(knapsack, x):
+    """
+    Function to implement Grover's algorithm to check if a given solution x
+    satisfies the decision problem criteria for the knapsack problem.
+
+    Args:
+        knapsack (Knapsack): An instance of the Knapsack problem.
+        x (str): A bitstring representing a potential solution (e.g., '011').
+
+    Returns:
+        QuantumCircuit: The Grover circuit for checking the solution.
+    """
+    n = len(knapsack.utilities)
+    if len(x) != n:
+        raise ValueError("Bitstring length does not match the number of items in the knapsack.")
+
+    # Parse the input bitstring into a set of selected items
+    selected_items = [i for i in range(n) if x[i] == '1']
+
+    # Check if the solution satisfies the constraints classically
+    total_volume = sum(knapsack.volume[i] for i in selected_items)
+    total_utility = sum(knapsack.utilities[i] for i in selected_items)
+
+    if total_volume > knapsack.max_volume:
+        print("Classical Check: Solution exceeds maximum volume.")
+        return None
+
+    # Create quantum circuit with n qubits and 1 auxiliary qubit
+    qc = QuantumCircuit(n + 1, n)
+
+    # Apply Hadamard gates to all qubits except the auxiliary qubit
+    qc.h(range(n))
+
+    # Oracle: Mark the given solution x if it satisfies the utility threshold
+    binary_solution = x
+    for i, bit in enumerate(binary_solution):
+        if bit == '0':
+            qc.x(i)
+
+    qc.h(n)
+    qc.mcx(list(range(n)), n)
+    qc.h(n)
+
+    for i, bit in enumerate(binary_solution):
+        if bit == '0':
+            qc.x(i)
+
+    # Diffusion operator
+    apply_diffusion(qc, list(range(n)))
+
+    # Measure the first n qubits
+    qc.measure(range(n), range(n))
+
+    # Execute the circuit using a sampler
+    sampler = Sampler()
+    job = sampler.run([qc])
+    result = job.result()
+
+    # Analyze results
+    quasi_dists = result.quasi_dists[0].binary_probabilities()
+    probabilities = {state: prob for state, prob in quasi_dists.items()}
+
+    # Get the probability of the given solution x
+    probability_of_x = probabilities.get(x, 0)
+
+    print("Given Solution:", x)
+    print("Probability of Solution:", probability_of_x)
+
+    return qc
+
+#  Q17
 def apply_diffusion(circuit, qubits):
     """
     Function to apply the diffusion operator to the given circuit.
@@ -109,6 +185,7 @@ def apply_diffusion(circuit, qubits):
     circuit.x(qubits)
     circuit.h(qubits)
 
+# Q17
 def solve_knapsack_optimization(knapsack):
     """
     Function to solve the knapsack problem using Grover's algorithm.
@@ -148,6 +225,13 @@ if __name__ == '__main__':
     print("Utility:", utility)
     print("Items Included:", items)
     print("Total Volume:", volume)
+
+    knapsack = Knapsack(2, [2, 1, 1], [1, 2, 1])
+    x = '001'
+
+    print("\nGrover's Algorithm for Knapsack Decision Problem:")
+    decision_circuit = grover_check(knapsack, x)
+    print("Circuit constructed.")
 
     print("\nQuantum Knapsack with Grover :")
     result_state, result_utility = solve_knapsack_optimization(knapsack)
