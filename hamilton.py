@@ -2,6 +2,7 @@
 import numpy as np
 
 def hijij(v, vis,  uis, l, n):
+    #Calcul des hi, Jij et c
     sv = np.sum(vis)
     sv2 = np.sum(vis**2)
     su = np.sum(uis)
@@ -27,12 +28,14 @@ def hijij(v, vis,  uis, l, n):
     return his, jijs, c
 
 def zi(i, n):
+    #Calcul de l'opérateur Z_i
     ret1 = np.identity(2**i)
     ret2 = np.array([[1, 0], [0, -1]])
     ret3 = np.identity(2**(n-i-1))
     return np.kron(np.kron(ret1, ret2), ret3)
 
 def hc(his, jijs, c, n):
+    #Calcul de l'Hamiltonien
     hc = np.zeros((2**n, 2**n)) + c
 
     for i in range(n):
@@ -40,16 +43,13 @@ def hc(his, jijs, c, n):
         for j in range(i):
             hc += jijs[j, i]*zi(j, n)@zi(i, n)
 
-    print(hc)
+    #print(hc)
 
     return hc
 
-his, jijs, c = hijij(42, np.array([1, 12, 29, 30]), np.array([11, 21, 10, 9]), 1, 4)
-#test zis
+his, jijs, c = hijij(33, np.array([10, 12, 11, 30]), np.array([11, 21, 10, 100]), 1, 4)
 
-#hc(his, jijs, c, 4)
-
-#calculate the eigenvalues of the Hamiltonian
+# Avec cet exemple -42 doit être une valeur propre de l'Hamiltonien
 
 eigenvalues = np.linalg.eigvals(hc(his, jijs, c, 4))
 
