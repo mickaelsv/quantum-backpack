@@ -1,25 +1,12 @@
-#!/home/hllmnt/python_venv/bin/python3
-
 
 class Knapsack:
     def __init__(self, volumes, utilities, capacity):
-        """
-        Initialise une instance du problème de sac à dos.
-        :param volumes: Liste des volumes des objets.
-        :param utilities: Liste des utilités des objets.
-        :param capacity: Capacité totale du sac.
-        """
         self.volumes = volumes
         self.utilities = utilities
         self.capacity = capacity
         self.num_items = len(volumes)
 
 def solve_knapsack(knapsack):
-    """
-    Résout une instance du problème de sac à dos tout en s'assurant que le sac est plein.
-    :param knapsack: Instance de la classe Knapsack.
-    :return: Tuple (valeur optimale, solution binaire).
-    """
     n = knapsack.num_items
     V = knapsack.capacity
 
@@ -53,5 +40,5 @@ def solve_knapsack(knapsack):
     return dp[n][V], solution
 
 
-pb = Knapsack([4, 5, 5], [1000, 1, 2300], 10)
+pb = Knapsack([4, 5, 5], [1000, 1, 1], 10)
 print(solve_knapsack(pb))
