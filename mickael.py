@@ -5,12 +5,18 @@ from math import floor, pi
 import numpy as np
 
 class Knapsack:
+    """
+    Class to represent a knapsack problem.
+    """
     def __init__(self, max_volume, volume, utilities):
         self.max_volume = max_volume
         self.volume = volume
         self.utilities = utilities
 
 def solve_knapsack(knapsack):
+    """
+    Function to solve the knapsack problem using dynamic programming.
+    """
     num_items = len(knapsack.volume)
     dp_table = [[0 for _ in range(knapsack.max_volume + 1)] for _ in range(num_items + 1)]
     for item_index in range(1, num_items + 1):
@@ -40,6 +46,9 @@ def solve_knapsack(knapsack):
     return dp_table[num_items][knapsack.max_volume], selected_items, sum(knapsack.volume[i] for i in selected_items)
 
 def get_possible_combinations_with_utility_over_k(knapsack, k):
+    """
+    Function to get all possible combinations of items that have a utility greater than k.
+    """
     possible_combinations = []
     utilities = []
     n = len(knapsack.utilities)
@@ -48,13 +57,16 @@ def get_possible_combinations_with_utility_over_k(knapsack, k):
         selected_utility = sum(knapsack.utilities[i] for i in range(n) if (subset & (1 << i)))
         selected_volume = sum(knapsack.volume[i] for i in range(n) if (subset & (1 << i)))
 
-        if selected_volume <= knapsack.max_volume and selected_volume >= k:
+        if selected_volume <= knapsack.max_volume and selected_utility >= k:
             possible_combinations.append(subset)
             utilities.append(selected_utility)
 
     return possible_combinations, utilities
 
 def mark_solutions_with_oracle(circuit, qubits, L):
+    """
+    Function to mark the solutions in L with an oracle for Grover's algorithm.
+    """
     n = len(qubits)
     for solution in L:
         binary_solution = format(solution, f'0{n}b')
@@ -70,7 +82,25 @@ def mark_solutions_with_oracle(circuit, qubits, L):
             if bit == '0':
                 circuit.x(qubits[i])
 
+def q13(knapsack, k):
+    """
+    Function to solve question 13: Constructs a list L of all realizable solutions with weight > k,
+    and builds an oracle for Grover's algorithm.
+    """
+    solutions, _ = get_possible_combinations_with_utility_over_k(knapsack, k)
+
+    n = len(knapsack.utilities)
+    qc = QuantumCircuit(n + 1)
+    qc.h(range(n))
+
+    mark_solutions_with_oracle(qc, list(range(n)) + [n], solutions)
+
+    return qc
+
 def apply_diffusion(circuit, qubits):
+    """
+    Function to apply the diffusion operator to the given circuit.
+    """
     circuit.h(qubits)
     circuit.x(qubits)
     circuit.h(qubits[-1])
@@ -80,6 +110,9 @@ def apply_diffusion(circuit, qubits):
     circuit.h(qubits)
 
 def solve_knapsack_optimization(knapsack):
+    """
+    Function to solve the knapsack problem using Grover's algorithm.
+    """
     solutions, utilities = get_possible_combinations_with_utility_over_k(knapsack, 1)
     max_utility = max(utilities)
     optimal_solutions = [solutions[i] for i, u in enumerate(utilities) if u == max_utility]
@@ -108,15 +141,14 @@ def solve_knapsack_optimization(knapsack):
     return max_state, selected_utility
 
 if __name__ == '__main__':
-    knapsack = Knapsack(10, [2, 3, 4, 5], [3, 4, 5, 6])
+    knapsack = Knapsack(2, [2, 1, 1], [1, 2, 1])
+
     utility, items, volume = solve_knapsack(knapsack) 
     print("Classic Knapsack Solution:")
     print("Utility:", utility)
     print("Items Included:", items)
     print("Total Volume:", volume)
 
-    quantum_knapsack = Knapsack(2, [2, 1, 1], [15, 2, 1])
-
-    print("\nQuantum Knapsack Optimization:")
-    result_state, result_utility = solve_knapsack_optimization(quantum_knapsack)
+    print("\nQuantum Knapsack with Grover :")
+    result_state, result_utility = solve_knapsack_optimization(knapsack)
     print(f"Selected State: {result_state}, Total Utility: {result_utility}")
