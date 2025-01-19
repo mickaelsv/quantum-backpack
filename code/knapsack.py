@@ -42,6 +42,6 @@ def solve_knapsack(knapsack):
 
     return dp[n][V], solution
 
-
-# pb = Knapsack(10, [4, 5, 5], [1000, 1, 1])
-# print(solve_knapsack(pb))
+if __name__ == "__main__":
+    pb = Knapsack(10, [4, 5, 5], [1000, 1, 1])
+    print(solve_knapsack(pb))
