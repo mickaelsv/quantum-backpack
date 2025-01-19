@@ -17,13 +17,13 @@ def create_hamiltonian(his, jijs, c, n):
 
     terms.append(("I"*n, c))
 
-    print(terms)
+    #print(terms)
 
     hc = SparsePauliOp.from_list(terms)
 
     return hc
 
-def QAOA(volumes, utilities, volume, n, l, reps):
+def QAOA(volumes, utilities, volume, n, l, reps,plot=False):
 
     
 
@@ -67,17 +67,19 @@ def QAOA(volumes, utilities, volume, n, l, reps):
     volume = sum([volumes[i] for i, x in enumerate(solution) if x == '1'])
     utility = sum([utilities[i] for i, x in enumerate(solution) if x == '1'])
 
-    print("Solution: {}, Utility: {}, Volume: {}".format(solution, utility, volume))
+    return solution,utility
+    #print("Solution: {}, Utility: {}, Volume: {}".format(solution, utility, volume))
 
 # Plotting the histogram
-    states = list(quasi_dists.keys())
-    probabilities = list(quasi_dists.values())
-    plt.bar(states, probabilities)
-    plt.xlabel('State')
-    plt.ylabel('Probability')
-    plt.title('Histogram of State Probabilities')
-    plt.xticks(rotation=90)
-    plt.show()
+    if plot:
+        states = list(quasi_dists.keys())
+        probabilities = list(quasi_dists.values())
+        plt.bar(states, probabilities)
+        plt.xlabel('State')
+        plt.ylabel('Probability')
+        plt.title('Histogram of State Probabilities')
+        plt.xticks(rotation=90)
+        plt.show()
 
 if __name__ == '__main__':
     n = 3
