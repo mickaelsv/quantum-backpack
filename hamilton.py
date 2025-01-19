@@ -1,4 +1,3 @@
-#!/home/hllmnt/python_venv/bin/python3
 import numpy as np
 
 def hijij(v, vis,  uis, l, n):
@@ -9,14 +8,12 @@ def hijij(v, vis,  uis, l, n):
     
     his = np.zeros(n)
 
-    c = np.identity(2**n)
-
-    c *= -0.5*su + l*(sv2 / 4 + sv**2 / 4 - v*sv + v**2)
+    c = -0.5*su + l*(sv2 / 4 + sv**2 / 4 - v*sv + v**2)
 
     for i, (vi, ui) in enumerate(zip(vis, uis)):
         hi = -0.5*ui + l*(0.5*sv - v)*vi
         his[i] = hi
-        print("h{}= {}".format(i, hi))
+        #print("h{}= {}".format(i, hi))
 
     jijs = np.zeros((n, n))
 
@@ -24,7 +21,7 @@ def hijij(v, vis,  uis, l, n):
         for i in range(j):
             jij = l*vj*vis[i]/2
             jijs[i, j] = jij
-            print("J{}{}= {}".format(i, j, jij))
+            #print("J{}{}= {}".format(i, j, jij))
     return his, jijs, c
 
 def zi(i, n):
@@ -36,7 +33,7 @@ def zi(i, n):
 
 def hc(his, jijs, c, n):
     #Calcul de l'Hamiltonien
-    hc = np.zeros((2**n, 2**n)) + c
+    hc = np.zeros((2**n, 2**n)) + c*np.identity(2**n)
 
     for i in range(n):
         hc += his[i]*zi(i, n)
@@ -47,12 +44,14 @@ def hc(his, jijs, c, n):
 
     return hc
 
-his, jijs, c = hijij(33, np.array([10, 12, 11, 30]), np.array([11, 21, 10, 100]), 1, 4)
+if __name__ == "__main__":
 
-# Avec cet exemple -42 doit être une valeur propre de l'Hamiltonien
+    his, jijs, c = hijij(33, np.array([10, 12, 11, 30]), np.array([11, 21, 10, 100]), 1, 4)
 
-eigenvalues = np.linalg.eigvals(hc(his, jijs, c, 4))
+    # Avec cet exemple -42 doit être une valeur propre de l'Hamiltonien
 
-print(eigenvalues)
+    eigenvalues = np.linalg.eigvals(hc(his, jijs, c, 4))
+
+    print(eigenvalues)
 
 
